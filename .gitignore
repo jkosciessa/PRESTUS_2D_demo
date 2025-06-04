@@ -1,0 +1,10 @@
+*
+!*.*
+!*/
+
+# exclude the nifti images
+*.nii.gz
+
+*.DS_STORE
+*.m~
+*.asv

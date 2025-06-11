@@ -18,7 +18,7 @@ git clone --recurse-submodules git@github.com:jkosciessa/PRESTUS_2D_demo.git
 
 ## Workflow
 
-This simple demo is intended to give you an impression of the inputs and outputs for the use of PRESTUS. We will neither simulate a complex 3D head with differentiated tissue, nor set up complex transducers. Instead, we will conceptually try to replicate a variant of the benchmarking setup reported by Aubry et al. (2022).
+This simple demo is intended to give you an impression of the inputs and outputs for the use of PRESTUS. We will neither simulate a complex 3D head with differentiated tissue, nor set up complex transducers. Instead, we will try to conceptually replicate a variant of the benchmarking setup reported by Aubry et al. (2022).
 
 1. Clone repository (with submodules; see above)
 2. Create tissue benchmark pantoms using ```./tools/PRESTUS/examples/createPhantom.m```

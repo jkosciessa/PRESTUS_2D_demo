@@ -20,9 +20,7 @@ git clone --recurse-submodules git@github.com:jkosciessa/PRESTUS_2D_demo.git
 
 This simple demo is intended to give you an impression of the inputs and outputs for the use of PRESTUS. We will neither simulate a complex 3D head with differentiated tissue, nor set up complex transducers. Instead, we will conceptually try to replicate a variant of the benchmarking setup reported by Aubry et al. (2022).
 
-1. Create the benchmark data:
-    1a. Generate the phantoms using ```PRESTUS/examples/createPhantom.m```
-    1b. ```gzip``` benchmark1.nii, and rename it to ```PRESTUS_2D_demo/data/simnibs/m2m_sub-001/final_tissues.nii.gz```
+1. Create the benchmark pantoms using ```PRESTUS/examples/createPhantom.m```
 2. Inspect the configuration files: ```PRESTUS_2D_demo/data/configs/default_config.yaml``` and ```config_setup1.yaml```
 3. Install SimNIBS
 4. Run the simulation script: ```PRESTUS_2D_demo/code/simulations```

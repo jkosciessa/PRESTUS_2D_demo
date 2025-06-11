@@ -5,6 +5,9 @@
 # exclude the nifti images
 *.nii.gz
 
+# exclude outputs
+data/tussim
+
 *.DS_STORE
 *.m~
 *.asv

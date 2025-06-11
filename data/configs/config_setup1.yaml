@@ -28,7 +28,10 @@ use_kWaveArray: 1
 
 expected_focal_distance_mm: 64
 transducer_from_localite: 0
-using_donders_hpc: 1
+
+# run with local cpu
+using_donders_hpc: 0
+code_type: matlab_cpu
 
 thermal:
   # protocol 1

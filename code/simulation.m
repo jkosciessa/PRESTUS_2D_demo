@@ -23,12 +23,17 @@ pn.nifti = (fullfile(rootpath, 'tools', 'nifti_toolbox')); addpath(pn.nifti);
 
 %% define variables to iterate across
 
-transducer_list = {['setup1']};
-all_subjects = [001:002];
-intensities = 30;
+% We will only use one setup, and test a single intensity here. But this
+% type of loop could be used to iterate across parameter setups in
+% practice.
+
+transducer_list = {['setup1']};     % name of config file
+all_subjects = [002];               % subjects (here benchmarks)
+intensities = 30;                   % acoustic free-water intensity [W/cm2]
+
+%% iterate across requested setups & subjects
 
 for subject_id = all_subjects
-
     for i_transducer = 1:length(transducer_list)
         for i_intensity = 1:length(intensities)
             transducer_name = transducer_list{i_transducer};
@@ -47,12 +52,18 @@ for subject_id = all_subjects
             parameters.ld_library_path ="/opt/gcc/7.2.0/lib64";
             parameters.data_path = pn.data_seg; % use simnibs folder
             parameters.seg_path = pn.data_seg;
-            parameters.t1_path_template = fullfile(sprintf('m2m_sub-%03d', subject_id), "T1.nii.gz");
-            %parameters.t2_path_template = fullfile(sprintf('m2m_sub-%03d', subject_id), "T2_reg.nii.gz");
             parameters.sim_path = pn.data_sims;
             parameters.paths_to_add = {pn.kwave, pn.minimize};
             pn.outputs_folder = fullfile(parameters.sim_path,sprintf('sub-%03d', subject_id));
             if ~exist(pn.outputs_folder); mkdir(pn.outputs_folder); end
+
+            % Here, we are not performing any segmentation of real 3D
+            % images, but rely on precomputed benchmark pahntoms. If you
+            % want to specify existing SimNIBS segmentations, you could use
+            % the following.
+
+            % parameters.t1_path_template = fullfile(sprintf('m2m_sub-%03d', subject_id), "T1.nii.gz");
+            % parameters.t2_path_template = fullfile(sprintf('m2m_sub-%03d', subject_id), "T2_reg.nii.gz");
 
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %% run free-water simulations %%
@@ -62,12 +73,6 @@ for subject_id = all_subjects
             parameters.interactive = 0;
             parameters.overwrite_files = 'always';
             parameters.run_heating_sims = 0;
-            if ismac % if run locally on a mac
-                parameters.using_donders_hpc = 0;
-                parameters.code_type = 'matlab_cpu';
-            else
-                parameters.using_donders_hpc = 1;
-            end
             
             single_subject_pipeline(subject_id, parameters);
 
@@ -113,7 +118,6 @@ for subject_id = all_subjects
             correctionFactor = (desired_intensity./max(axial_pressure));
             real_profile(:,1) = pos_x_sim_res; %pos_x_axis;
             real_profile(:,2) = axial_pressure.*correctionFactor;
-    %         real_profile(real_profile(:,1)<=0, :) = [];
 
             [opt_source_amp, opt_phases] = transducer_calibration(...
                 pn, ...
@@ -132,8 +136,6 @@ for subject_id = all_subjects
             parameters.ld_library_path ="/opt/gcc/7.2.0/lib64";
             parameters.data_path = pn.data_seg;
             parameters.seg_path = pn.data_seg;
-            parameters.t1_path_template = fullfile(sprintf('m2m_sub-%03d', subject_id), "T1.nii.gz");
-            parameters.t2_path_template = fullfile(sprintf('m2m_sub-%03d', subject_id), "T2_reg.nii.gz");
             parameters.sim_path = pn.data_sims;
             parameters.paths_to_add = {pn.kwave, pn.minimize};
 
@@ -161,14 +163,6 @@ for subject_id = all_subjects
             parameters.thermal.pri_duration = 0.2;
             parameters.thermal.equal_steps = 1;
             parameters.thermal.cem43_iso = 1;
-
-            parameters.code_type = 'matlab_cpu';
-
-            if ismac % if run locally on a mac
-                parameters.using_donders_hpc = 0;
-            else
-                parameters.using_donders_hpc = 1;
-            end
             
             single_subject_pipeline(subject_id, parameters);
 

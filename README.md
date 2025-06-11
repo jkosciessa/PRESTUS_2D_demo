@@ -26,7 +26,9 @@ This simple demo is intended to give you an impression of the inputs and outputs
 4. [Optional] Inspect configuration files: ```./data/configs/default_config.yaml``` and ```./data/configs/config_setup1.yaml```
 5. Install SimNIBS (and specify ```parameters.simnibs_bin_path``` in config/script)
 6. Run simulation script: ```./code/simulations```
-7. Inspect outputs
+7. Inspect outputs (for a brief overview preview ```./data/results.md```)
+
+We hope that these simplified examples provide an intuition for how PRESTUS can be setup and illustrate expected outputs. For more documentation (also for transitioning to personalized 3D head simulations and dedicated transducer setups), please refer to [the documentation](https://github.com/Donders-Institute/PRESTUS/tree/master/documentation) and raise [issues](https://github.com/Donders-Institute/PRESTUS/issues) if setups are unclear.
 
 ## References
 

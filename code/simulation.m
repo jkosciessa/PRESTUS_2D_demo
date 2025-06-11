@@ -143,6 +143,8 @@ for subject_id = all_subjects
             parameters.interactive = 0;
             parameters.overwrite_files = 'always';
             parameters.overwrite_simnibs = 0;
+
+            % generate a video of evolving heating? [by default deactivated]
             parameters.heatingvideo = 0;
 
             parameters.transducer.source_amp = opt_source_amp; % use calibrated input intensity

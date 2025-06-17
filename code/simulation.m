@@ -80,24 +80,25 @@ for subject_id = all_subjects
             %% plot free-water results %%
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-            opt_res = load(fullfile(pn.outputs_folder, sprintf('sub-%03d_water_results%s.mat',...
+            og_res = load(fullfile(pn.outputs_folder, sprintf('sub-%03d_water_results%s.mat',...
             subject_id, parameters.results_filename_affix)),'sensor_data','parameters');
 
-            p_max = gather(opt_res.sensor_data.p_max_all);
-            pred_axial_pressure_opt = squeeze(p_max(opt_res.parameters.transducer.pos_grid(1),:));
+            p_max = gather(og_res.sensor_data.p_max_all);
+            pred_axial_pressure_opt = squeeze(p_max(og_res.parameters.transducer.pos_grid(1),:));
             axial_pressure = pred_axial_pressure_opt.^2/...
                 (2*parameters.medium.water.sound_speed*parameters.medium.water.density).* 1e-4;
+
+            pos_x_axis = (1:parameters.default_grid_dims(2)).*parameters.grid_step_mm; % x-axis [mm]
+            pos_x_trans = (og_res.parameters.transducer.pos_grid(2)-1)*parameters.grid_step_mm; % x-axis position of transducer [mm]
+            pos_x_sim_res = pos_x_axis-pos_x_trans; % axial position for the simulated results, relative to transducer position [mm]
 
             h = figure('Position', [10 10 900 500]);
             hold on
             xlabel('Axial Position [mm]');
             ylabel('Intensity [W/cm^2]');
-            pos_x_axis = (1:parameters.default_grid_dims(2)).*parameters.grid_step_mm; % x-axis [mm]
-            pos_x_trans = (opt_res.parameters.transducer.pos_grid(2)-1)*parameters.grid_step_mm; % x-axis position of transducer [mm]
-            pos_x_sim_res = pos_x_axis-pos_x_trans; % axial position for the simulated results, relative to transducer position [mm]
             plot(pos_x_sim_res, axial_pressure);
             hold off
-            xline(opt_res.parameters.expected_focal_distance_mm, '--');
+            xline(og_res.parameters.expected_focal_distance_mm, '--');
             yline(desired_intensity, '--');
             plotname = fullfile(pn.outputs_folder, 'simulation_analytic.png');
             saveas(h, plotname, 'png');
@@ -126,6 +127,32 @@ for subject_id = all_subjects
                 subject_id, ...
                 desired_intensity, ...
                 real_profile);
+
+            %% plot the optimized results
+
+            opt_res = load(fullfile(pn.outputs_folder, ...
+                sprintf('sub-%03d_water_results%s.mat',subject_id, '_optimized')),...
+                'sensor_data','parameters');
+
+            p_max = gather(opt_res.sensor_data.p_max_all);
+            pred_axial_pressure_opt = squeeze(p_max(opt_res.parameters.transducer.pos_grid(1),:));
+            axial_pressure_opt = pred_axial_pressure_opt.^2/...
+                (2*parameters.medium.water.sound_speed*parameters.medium.water.density).* 1e-4;
+
+            h = figure('Position', [10 10 400 200]);
+            hold on
+            xlabel('Axial Position [mm]');
+            ylabel('Intensity [W/cm^2]');
+            plot(pos_x_sim_res, axial_pressure, 'LineWidth',2);
+            plot(pos_x_sim_res, axial_pressure_opt, 'LineWidth',2);
+            hold off
+            xline(opt_res.parameters.expected_focal_distance_mm, '--');
+            yline(desired_intensity, '--');
+            xlim([0 120])
+            set(gca, 'FontSize', 15)
+            plotname = fullfile(pn.outputs_folder, 'simulation_analytic');
+            saveas(h, plotname, 'epsc');
+            close(h);
 
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %% run soft-tissue simulation %%
@@ -156,15 +183,31 @@ for subject_id = all_subjects
             parameters.run_acoustic_sims = 1;
             parameters.run_heating_sims = 1;
 
-            parameters.thermal.n_trials = 400;
+            % post-stim modeling as appended duration
+
+            parameters.thermal.n_trials = 400; % 80 s
             parameters.thermal.duty_cycle = 0.1;
             parameters.thermal.stim_duration = 0.2; 
             parameters.thermal.sim_time_steps = 0.02;
-            parameters.thermal.post_stim_dur = 80;
-            parameters.thermal.post_time_steps = 1;
+            parameters.thermal.post_stim_dur = 400; % [s]
+            parameters.thermal.post_time_steps = 5; % coarser time steps
             parameters.thermal.pri_duration = 0.2;
             parameters.thermal.equal_steps = 1;
-            parameters.thermal.cem43_iso = 1;
+            parameters.thermal.cem43_iso = 0;
+
+            % post-stim modeling as break
+
+            % parameters.thermal.n_trials = 4000;
+            % parameters.thermal.duty_cycle = 0.1;
+            % parameters.thermal.stim_duration = 0.2; 
+            % parameters.thermal.sim_time_steps = 0.02;
+            % parameters.thermal.post_stim_dur = 0;
+            % parameters.thermal.post_time_steps = 0;
+            % parameters.start_break_trials = 401; % identical time steps
+            % parameters.stop_break_trials = 4000;
+            % parameters.thermal.pri_duration = 0.2;
+            % parameters.thermal.equal_steps = 1;
+            % parameters.thermal.cem43_iso = 0;
             
             single_subject_pipeline(subject_id, parameters);
 

@@ -6,8 +6,8 @@ transducer:
   Elements_OD_mm: [62.2]
   curv_radius_mm: 64
   dist_to_plane_mm: 64
-  source_amp: 134649
-  source_phase_deg: [0]
+  source_amp: 80000       # we need to calibrate this first
+  source_phase_deg: [0]   # single-element: no phase setup necessary
   source_freq_hz: 500e3
 
 simulation_medium: water

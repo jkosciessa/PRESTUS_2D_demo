@@ -1,6 +1,6 @@
 # **PRESTUS 2D benchmark example**
 
-This directory contains simulations for 2D phantoms using [PRESTUS v0.4](https://github.com/Donders-Institute/PRESTUS/releases/tag/v0.4.0).
+This directory contains simulations for 2D phantoms using [the development version of PRESTUS v0.5](https://github.com/Donders-Institute/PRESTUS/tree/development).
 
 ## Installation
 

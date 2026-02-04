@@ -4,6 +4,8 @@
 
 # exclude the nifti images
 *.nii.gz
+*data/calibration
+*data/tussim
 
 # exclude outputs
 data/tussim

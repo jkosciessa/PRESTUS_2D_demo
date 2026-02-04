@@ -10,39 +10,35 @@ transducer:
   source_phase_deg: [0]   # single-element: no phase setup necessary
   source_freq_hz: 500e3
 
+expected_focal_distance_mm: 64
+
 simulation_medium: water
 
 run_source_setup: 1
-run_posthoc_water_sims: 1
+run_acoustic_sims: 1
 run_heating_sims: 1
+run_posthoc_water_sims: 1
 
 grid_step_mm: 1  # [mm]
-default_grid_size: 120
 default_grid_dims: [70, 140] # 140 = 120mm + 20 pml
 
-pml_size: 20 # default for 2D (cf. 10 for 3D)
+pml_size: 10 # default for 2D (cf. 10 for 3D)
 
 n_sim_dims: 2
 axisymmetric: 1
 use_kWaveArray: 1
 
-expected_focal_distance_mm: 64
-transducer_from_localite: 0
-
-# run with local cpu
-using_donders_hpc: 0
-code_type: matlab_cpu
-
 thermal:
-  # protocol 1
-  n_trials: 400
-  duty_cycle: 0.1
-  stim_duration: 0.2  
-  sim_time_steps: 0.02
-  post_stim_dur: 80
-  post_time_steps: 1
-  pri_duration: 0.2
-  equal_steps: 1
+  pd: 0.02              # Pulse Duration (PD) [seconds]
+  pri: 0.2              # Pulse Repetition Interval (PRI) [seconds]
+  ptd: 0.2              # Pulse Train Duration (PTD) [seconds]
+  pt_timestep: 0.02     # Modeling time steps inside a PT [seconds]
+  ptri: 0.2             # Pulse Train Repetition Interval (PTRI) [seconds]
+  ptrd: 20              # Pulse Train Repetition Duration (PTRD) [seconds] 
+  post_ptri_dur: 20     # Cooloff Duration following the PTRI [seconds]
+  post_pt_timestep: 1   # Modeling time steps following PT & PTRI [seconds]
+  # retained parameters
+  equal_step_duration: 0
   cem43_iso: 1
   temp_0:
     water: 37

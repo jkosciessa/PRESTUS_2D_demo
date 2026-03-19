@@ -23,7 +23,7 @@ pn.nifti = (fullfile(rootpath, 'tools', 'nifti_toolbox')); addpath(pn.nifti);
 
 %% test calibration?
 
-test_calibration = 1;
+test_calibration = 0;
 
 %% define variables to iterate across
 
@@ -31,17 +31,18 @@ test_calibration = 1;
 % type of loop could be used to iterate across parameter setups in
 % practice.
 
-transducer_list = {['setup1']};     % name of config file
-all_subjects = [002];               % subjects (here benchmarks)
-intensities = 30;                   % acoustic free-water intensity [W/cm2]
+setup_list = {['setup1']};     % setup (typically transducer-TPO specific; name of config file)
+subject_list = [2];            % subjects (here benchmarks)
+intensity_list = [30];         % acoustic free-water intensity [W/cm2] (requires calibration)
 
 %% iterate across requested setups & subjects
 
-for subject_id = all_subjects
-    for i_transducer = 1:length(transducer_list)
-        for i_intensity = 1:length(intensities)
-            transducer_name = transducer_list{i_transducer};
-            desired_intensity = intensities(i_intensity);
+for i_subject = 1:length(subject_list)
+    subject_id = subject_list(i_subject);
+    for i_setup = 1:length(setup_list)
+        transducer_name = setup_list{i_setup};
+        for i_intensity = 1:length(intensity_list)
+            desired_intensity = intensity_list(i_intensity);
 
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %% load parameters and adjust paths if necessary %%
@@ -194,7 +195,7 @@ for subject_id = all_subjects
             parameters.platform = 'matlab';
 
             % Run interactive?
-            parameters.interactive = 0;
+            parameters.interactive = 1;
             
             prestus_pipeline_start(subject_id, parameters);
 

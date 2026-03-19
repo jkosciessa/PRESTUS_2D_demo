@@ -10,15 +10,16 @@
 
 #------------ I/O management
 
-# Paths to the data location (please use full paths)
-data_path: NA
+data_path: ''   # Location of the the input data [full path]
+sim_path: ''    # Location of the the simulation outputs [full paths or folder name in data_path]
+sig_path: ''    # Location of the the segmentation directories (containing m2m folders) [full path]
+
+# Should simulation outputs be ordered based on subject id?
+subject_subfolder: 1
 
 # Paths to T1 and T2 relative to data_path; all string substitutions will be done using subject_id
-# t1_path_template: sub-%1$03d_orig_T1w.nii.gz 
-# t2_path_template: sub-%1$03d_orig_T2w.nii.gz
-
-# Should output be ordered based on subject id?
-subject_subfolder: 1
+#t1_path_template: '' # e.g. 'sub-%1$03d_T1w.nii*'
+#t2_path_template: '' # e.g., 'sub-%1$03d_T2w.nii*''
 
 # Optional affix for result files names
 results_filename_affix: ''
@@ -41,21 +42,29 @@ overwrite_simnibs: 0
 # select which medium setup to use: 'water' or 'layered' (a layered medium consists of several layers defined below)
 simulation_medium: layered
 
-usepseudoCT: 0 # [Optional] use (p)CT (if available) to inform skull medium properties
-pseudoCT_variant: kosciessa # pCT mapping algorithms (yaakub/carpino/k-plan/marquet/kosciessa [default])
+use_pseudoCT: 0 # [Optional] use (p)CT (if available) to inform skull medium properties
+pct_mapping_density: 'k-plan'     # pCT mapping algorithm for density: k-plan/k-wave/marsac/aubry
+pct_mapping_soundspeed: 'k-plan'  # pCT mapping algorithm for sound speed: k-plan/marsac/aubry
+pct_mapping_attenuation: 'k-plan' # pCT mapping algorithm for attenuation: k-plan/mueller
 
-# Only run specific components of the pipeline?
-run_source_setup: 1       # Should we set up acoustic source? switch off to look at initial segmentation results only
-run_acoustic_sims: 1      # Should we run the acoustic simulations?
-run_heating_sims: 1       # Should we run the heating simulations? Run once acoustic simulation provides sensible results.
-run_posthoc_water_sims: 1 # Should we run the simulations in free water with exactly the same parameter? Verify that free-water intensity matches target.
+# Run specific modules?
+
+run_grid_setup: 1         # Setup grid and run head processing? Mandatory for simulations.
+run_medium_setup: 1       # Map medium acoustic properties Mandatory for simulations.
+run_source_setup: 1       # Set up acoustic source? Mandatory for simulations.
+run_acoustic_sims: 1      # Run acoustic simulations?
+run_acoustic_analysis: 1  # Run acoustic analysis?
+run_heating_sims: 0       # Run thermal simulations? Default: off; run once acoustic simulation provides sensible results.
+run_thermal_analysis: 1   # Run thermal analysis?
+run_nifti_creation: 1     # Run nifti creation?
+run_posthoc_water_sims: 1 # Run simulations in free water with identical setup?
+generate_report: 1        # Generate a self-contained HTML simulation report at the end of the pipeline?
 
 # Select which k-Wave code to run (see 'run_simulations' for more documentation)
 #   MATLAB CPU code 'matlab_cpu'
 #   MATLAB GPU code 'matlab_gpu'
-#   C++ code (Interactive) 'cpp_interactive'
-#   C++ code (Non-Interactive) 'cpp_noninteractive'
-#   CUDA code 'cuda' (currently does not work at the Donders HPC, but 'matlab_gpu' works)
+#   C++ CPU code 'cpp_cpu'
+#   GPU code 'cpp_gpu'
 code_type: matlab_gpu 
 
 savemat: 0 # Save output matrices?
@@ -63,10 +72,13 @@ debug: 1 # Activate a debug mode in which more intermediate outputs are provided
 
 #------------ High-performance computing
 
-hpc_submit_medium: 'matlab' # slurm (recommended) | qsub | matlab (default)
+platform: 'auto' # auto (recommended) | slurm | qsub | matlab (recommended for debugging)
 hpc_gpu: ''
 hpc_partition: ''
 hpc_reservation: ''
+hpc_wait_for_job: false
+hpc_timelimit: '04:00:00'
+hpc_memorylimit: 20
 
 # An optional path to LD_LIBRARY used during SimNIBS installation
 # If you experience an `undefined symbol` error in `create_mesh_surf.cpython-39-x86_64-linux-gnu.so`, set either of the next lines to your LD_LIBRARY location
@@ -135,8 +147,8 @@ segmentation_software: charm
 layers:
   water: [0, 3, 6, 9, 10] # this isn't really neccessary as water is a default layer - all that has a number not used for other layers will be assigned water properties
   brain: [1, 2]
-  skull: [4]
   skin: [5]
+  skull: [4]
   skull_cortical: [7] 
   skull_trabecular: [8]
 
@@ -162,26 +174,17 @@ medium:
   water:
     sound_speed: 1500
     density: 994
-    alpha_0_true: 2.17e-3
-    alpha_power_true: 2
+    alpha_coeff: 2.17e-3
+    alpha_power: 2
     thermal_conductivity: 0.60 # [W/m/°C]
     specific_heat_capacity: 4178 # [J/kg/°C]
     perfusion: 0
     absorption_fraction: 1
-  skull: # (single skull layer only; mostly following cortical bone)
-    sound_speed: 2800 # [m/s]
-    density: 1850 # [kg/m^3]
-    alpha_0_true: 13.3
-    alpha_power_true: 1
-    thermal_conductivity: 0.32 # [W/m/°C]
-    specific_heat_capacity: 1793 # [J/kg/°C]
-    perfusion: 20
-    absorption_fraction: 0.28
   brain:
     sound_speed: 1546 # [m/s]
     density: 1046 # [kg/m^3]
-    alpha_0_true: 0.59
-    alpha_power_true: 1.2
+    alpha_coeff: 0.59
+    alpha_power: 1.2
     thermal_conductivity: 0.51 # [W/m/°C]
     specific_heat_capacity: 3630 # [J/kg/°C]
     perfusion: 559
@@ -189,17 +192,26 @@ medium:
   skin:
     sound_speed: 1610 # [m/s]
     density: 1090 # [kg/m^3]
-    alpha_0_true: 0.4
-    alpha_power_true: 1
+    alpha_coeff: 0.4
+    alpha_power: 1
     thermal_conductivity: 0.37 # [W/m/°C]
     specific_heat_capacity: 3391 # [J/kg/°C]
     perfusion: 106
     absorption_fraction: 1
+  skull: # (single skull layer only; mostly following cortical bone)
+    sound_speed: 2800 # [m/s]
+    density: 1850 # [kg/m^3]
+    alpha_coeff: 13.3
+    alpha_power: 1
+    thermal_conductivity: 0.32 # [W/m/°C]
+    specific_heat_capacity: 1793 # [J/kg/°C]
+    perfusion: 20
+    absorption_fraction: 0.28
   skull_trabecular: # trabecular bone
     sound_speed: 2300 # [m/s]
     density: 1700 # [kg/m^3]
-    alpha_0_true: 13.3
-    alpha_power_true: 1
+    alpha_coeff: 13.3
+    alpha_power: 1
     thermal_conductivity: 0.32 # [W/m/°C]
     specific_heat_capacity: 2274 # [J/kg/°C]
     perfusion: 30
@@ -207,8 +219,8 @@ medium:
   skull_cortical: # cortical bone
     sound_speed: 2800 # [m/s]
     density: 1850 # [kg/m^3]
-    alpha_0_true: 13.3
-    alpha_power_true: 1
+    alpha_coeff: 13.3
+    alpha_power: 1
     thermal_conductivity: 0.32 # [W/m/°C]
     specific_heat_capacity: 1313 # [J/kg/°C]
     perfusion: 10
@@ -217,38 +229,50 @@ medium:
 #------------ Simulation grid
 
 grid_step_mm: 0.5  # Grid resolution (must be isotropic) [mm]
-
-# These only need to be set manually if the simulations are done for water only
-default_grid_dims: [144, 144, 400] # [points per dimension]
-
-# select PML size, the default one for 3D is 10 (PML is the layer used in
-# kWaves to absorb waves reaching the end of the computational grid,
-# http://www.k-wave.org/documentation/example_na_controlling_the_pml.php)
-pml_size: 10
-
-# To what extent the computational grid can be expanded in order to get lower prime numbers to (potentially) speed up computations
-grid_max_expand: 40
+default_grid_dims: [144, 144, 400] # [points per dimension] [used for setting up free-water grid]
+pml_size: 10 # Perfectly Matched Layer (PML) size [3D recommendation: 10]
 
 source_ppw: [] # Points Per Wavelength [default: calculated internally]
 source_cfl: 0.15 # Courant-Friedrichs-Lewy fraction
 source_limit_fraction: 0.9 # Fraction of the stability limit to use for time step (0 = do not use stability limit)
 
+precision: 'single' # Computational precision for both acoustic and thermal simulations
+
 #------------ Segmentation / Head preprocessing
 
-# Expansion factor for the cerebro-spinal fluid brain mask;
-# if the mask ends up being too big, try reducing it
-# (40 is the conservative default; the mask is dilated with csf_mask_expansion_factor/voxel_size_mm cubic kernel)
-csf_mask_expansion_factor: 40
+pad_mm: 0 # Apply symmetric padding to grid prior to transducer + PML setup?
+csf_mask_expansion_factor: 40 # Expansion factor for the cerebro-spinal fluid brain mask to capture head areas of interest in simulation
+grid_max_expand: 40 # Prime number grid expansion size to (potentially) speed up computations
 
-# Thresholds for smoothing the skull and other masks
-smooth_method: 'gaussian' # Filter type ['gaussian' (default)|'anisotropic'|'box']
-smooth_threshold_skull: 0.35 # (higher threshold means thinner mask, lower threshold means thicker mask)
-smooth_threshold_other: 0.5 # (higher threshold means thinner mask, lower threshold means thicker mask)
-smooth_window: 3 # Number of voxels for smoothing
+# Thresholds for smoothing masks (and acoustic properties)
+smooth_method: 'gaussian' # Filter type ['gaussian' (default)|'box']
+smooth_threshold_skull: 0.5 # (higher threshold -> thinner mask)
+smooth_threshold_other: 0.5 # (higher threshold -> thinner mask)
+smooth_fwhm_mm: 1 # Smoothing FWHM [mm]
+smooth_properties: false # Apply smoothing with parameters above to acoustic property maps?
 
-#------------ Transducer placement (WIP)
+# Settings for shrinkwrap (if requested)
+skullfillmethod: 'rubberwrap' # Method for filling holes in the skull ['rubberwrap'(default)/'imclose']
+wrapradius: 10 # skull rubber wrap radius [grid voxels]; Bigger = tighter rubber that ignores bigger dents (recommendaton: 2 to 10)
+skullwrap_visualize: 0 # Visualize results of skullwrap? (Currently causes issues on HPC)
+
+#------------ Transducer Placement (Localite)
 
 # Should the script position_transducer_localite be used?
 transducer_from_localite: 0
 # Allows one to correct for varying distances between the infrared trackers attached to the transducer and the exit plane
 reference_transducer_distance_mm: 15 # (can only be used with the function 'transducer_from_localite')
+
+#------------ Transducer Placement (Heuristic)
+
+tp_dist_close: []
+tp_ear_radius: 35
+tp_left_ear_center: []
+tp_right_ear_center: []
+tp_criterion_intersection: 0.05
+tp_criterion_skin_mean: []
+tp_criterion_skull_mean: []
+tp_criterion_skin_var: []
+tp_criterion_skull_var: []
+tp_expand_step: 0.01
+tp_save_localiteT1: true

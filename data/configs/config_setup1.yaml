@@ -5,12 +5,12 @@ transducer:
   Elements_ID_mm: [0]
   Elements_OD_mm: [62.2]
   curv_radius_mm: 64
-  dist_to_plane_mm: 64
+  dist_to_plane_mm: 55.4  # (64 mm from bowl, minus 8.6 mm focus distance offset)
   source_amp: 80000       # we need to calibrate this first
   source_phase_deg: [0]   # single-element: no phase setup necessary
   source_freq_hz: 500e3
 
-expected_focal_distance_mm: 64
+expected_focal_distance_ep: 55.4 # (64 mm from bowl, minus 8.6 mm focus distance offset)
 
 simulation_medium: water
 

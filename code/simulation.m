@@ -23,7 +23,7 @@ pn.nifti = (fullfile(rootpath, 'tools', 'nifti_toolbox')); addpath(pn.nifti);
 
 %% test calibration?
 
-test_calibration = 0;
+test_calibration = 1;
 
 %% define variables to iterate across
 
@@ -71,6 +71,8 @@ for subject_id = all_subjects
 
             if test_calibration == 1
 
+                % Here, we run an initial free-water simulation to generate a reference profile to optimize the amplitude (single element, no phases in this transducer example).
+                
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 %% run free-water simulations %%
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -81,8 +83,9 @@ for subject_id = all_subjects
                 parameters.run_heating_sims = 0;
                 parameters.code_type = 'matlab_cpu';
                 parameters.savemat = 1; % we want to load the output below
-                
-                single_subject_pipeline(subject_id, parameters);
+                parameters.platform = 'matlab';
+                parameters.interactive = 0;
+                prestus_pipeline_start(subject_id, parameters);
     
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 %% plot free-water results %%
@@ -104,10 +107,10 @@ for subject_id = all_subjects
                 ylabel('Intensity [W/cm^2]');
                 pos_x_axis = (1:opt_res_params.default_grid_dims(2)).*opt_res_params.grid_step_mm; % x-axis [mm]
                 pos_x_trans = (opt_res_params.transducer.trans_pos(2)-1)*opt_res_params.grid_step_mm; % x-axis position of transducer [mm]
-                pos_x_sim_res = pos_x_axis-pos_x_trans; % axial position for the simulated results, relative to transducer position [mm]
+                pos_x_sim_res = pos_x_axis-pos_x_trans; % axial position for the simulated results, relative to transducer bowl [mm]
                 plot(pos_x_sim_res, axial_pressure);
                 hold off
-                xline(opt_res_params.expected_focal_distance_mm, '--');
+                xline(opt_res_params.expected_focal_distance_ep, '--');
                 yline(desired_intensity, '--');
                 plotname = fullfile(pn.outputs_folder, 'simulation_analytic.png');
                 saveas(h, plotname, 'png');
@@ -126,23 +129,25 @@ for subject_id = all_subjects
                 parameters.correctEPdistance = 0; % do not correct for exit plan distance
         
                 correctionFactor = (desired_intensity./max(axial_pressure));
-                profile_empirical.dist_from_tran = pos_x_sim_res;
-                profile_empirical.profile_focus = axial_pressure.*correctionFactor;
-                profile_empirical.focus_wrt_exit_plane = 64; % not really the exit plane here...
+                profile_empirical.axial_distance_bowl = pos_x_sim_res;
+                profile_empirical.axial_intensity = axial_pressure.*correctionFactor;
+                profile_empirical.focus_wrt_exit_plane = parameters.transducer.dist_to_plane_mm;
                 
                 cd(fullfile(rootpath, 'data','configs'));
     
                 parameters.calibration = yaml.loadFile('calibration_config.yaml');
-                parameters.calibration.path_output = fullfile(rootpath, 'data','calib ration'); 
+                parameters.calibration.path_output = fullfile(rootpath, 'data','calibration'); 
                     mkdir(parameters.calibration.path_output)
                 parameters.calibration.path_output_profiles = ...
                     fullfile(parameters.calibration.path_output,'PRESTUS_virtual_parameters');
                     mkdir(parameters.calibration.path_output_profiles)
         
                 [opt_source_amp, opt_source_phase_deg, opt_source_phase_rad] = ...
-                    calibration_transducer(profile_empirical,...
+                    calibration_transducer(...
+                    profile_empirical,...
                     transducer_name, ...
                     desired_intensity, ...
+                    profile_empirical.focus_wrt_exit_plane, ...
                     parameters, ...
                     subject_id);
 
@@ -180,17 +185,18 @@ for subject_id = all_subjects
                 parameters.transducer.source_phase_rad = 3.7;
             end
 
+            % Place transducer
             parameters.transducer.trans_pos = [35, parameters.pml_size+1];
             parameters.transducer.focus_pos = [35, parameters.pml_size+64];
 
-            % post-stim modeling as break
-
+            % Specify deployment
             parameters.code_type = 'matlab_cpu';
+            parameters.platform = 'matlab';
 
             % Run interactive?
-            parameters.interactive = 1;
+            parameters.interactive = 0;
             
-            single_subject_pipeline(subject_id, parameters);
+            prestus_pipeline_start(subject_id, parameters);
 
         end
     end

@@ -1,44 +1,50 @@
 subject_subfolder: 1
 
-transducer: 
-  n_elements: 1
-  Elements_ID_mm: [0]
-  Elements_OD_mm: [62.2]
-  curv_radius_mm: 64
-  dist_to_plane_mm: 55.4  # (64 mm from bowl, minus 8.6 mm focus distance offset)
-  source_amp: 80000       # we need to calibrate this first
-  source_phase_deg: [0]   # single-element: no phase setup necessary
-  source_freq_hz: 500e3
+transducer:
+  type: annular
+  freq_hz: 500e3
 
-expected_focal_distance_ep: 55.4 # (64 mm from bowl, minus 8.6 mm focus distance offset)
+  trans_pos: []         # set in simulation.m
+  focus_pos: []         # set in simulation.m
+  focal_distance_ep: 64 # expected focal distance from exit plane [mm]
 
-simulation_medium: water
+  annular:
+    elem_n: 1
+    elem_id_mm: [0]
+    elem_od_mm: [62.2]
+    curv_radius_mm: 64
+    dist_geom_ep_mm: 64
+    elem_amp: 80000          # calibrate first
+    elem_phase_deg: [0]      # single-element: no phase setup necessary
 
-run_source_setup: 1
-run_acoustic_sims: 1
-run_heating_sims: 1
-run_posthoc_water_sims: 1
+simulation:
+  medium: water
 
-grid_step_mm: 1  # [mm]
-default_grid_dims: [70, 140] # 140 = 120mm + 20 pml
+modules:
+  run_source_setup: 1
+  run_acoustic_sims: 1
+  run_heating_sims: 1
+  run_posthoc_water_sims: 1
 
-pml_size: 10 # default for 2D (cf. 10 for 3D)
+grid:
+  resolution_mm: 1       # [mm]
+  default_dims: [70, 140] # 140 = 120mm + 20 pml
+  pml_size: 10            # default for 2D (cf. 10 for 3D)
+  axisymmetric: 1
+  use_kWaveArray: 1
 
-n_sim_dims: 2
-axisymmetric: 1
-use_kWaveArray: 1
+timing:
+  pd: 0.02               # Pulse Duration (PD) [seconds]
+  pri: 0.2               # Pulse Repetition Interval (PRI) [seconds]
+  ptd: 0.2               # Pulse Train Duration (PTD) [seconds]
+  pt_timestep: 0.02      # Modeling time steps inside a PT [seconds]
+  ptri: 0.2              # Pulse Train Repetition Interval (PTRI) [seconds]
+  ptrd: 20               # Pulse Train Repetition Duration (PTRD) [seconds]
+  post_ptri_dur: 20      # Cooloff Duration following the PTRI [seconds]
+  post_pt_timestep: 1    # Modeling time steps following PT & PTRI [seconds]
+  equal_step_duration: 0
 
 thermal:
-  pd: 0.02              # Pulse Duration (PD) [seconds]
-  pri: 0.2              # Pulse Repetition Interval (PRI) [seconds]
-  ptd: 0.2              # Pulse Train Duration (PTD) [seconds]
-  pt_timestep: 0.02     # Modeling time steps inside a PT [seconds]
-  ptri: 0.2             # Pulse Train Repetition Interval (PTRI) [seconds]
-  ptrd: 20              # Pulse Train Repetition Duration (PTRD) [seconds] 
-  post_ptri_dur: 20     # Cooloff Duration following the PTRI [seconds]
-  post_pt_timestep: 1   # Modeling time steps following PT & PTRI [seconds]
-  # retained parameters
-  equal_step_duration: 0
   cem43_iso: 1
   temp_0:
     water: 37
@@ -49,4 +55,3 @@ thermal:
     skull_cortical: 37
   sensor_xy_halfsize: 120
   record_t_at_every_step: 0
- 

@@ -1,35 +1,66 @@
 # **PRESTUS 2D benchmark example**
 
-This directory contains simulations for 2D phantoms using [the development version of PRESTUS v0.5](https://github.com/Donders-Institute/PRESTUS/tree/development).
+This directory contains simulations for 2D phantoms using [the development version of PRESTUS](https://github.com/Donders-Institute/PRESTUS/tree/development) (currently tracking v0.6.2-pre).
+
+## Overview
+
+This demo replicates a variant of the benchmarking setup from Aubry et al. (2022) using PRESTUS. It uses precomputed 2D tissue phantoms rather than real 3D MRI segmentations, so no SimNIBS installation is required. The main simulation script runs on CPU in MATLAB and produces acoustic and thermal simulation outputs for a single-element transducer focused through a layered phantom.
+
+## Prerequisites
+
+- MATLAB (tested with R2022b+)
+- [k-Wave Toolbox](http://www.k-wave.org/) — place in `tools/PRESTUS/external/k-wave/`
+- [FEX-minimize](https://www.mathworks.com/matlabcentral/fileexchange/24298) — place in `tools/PRESTUS/external/FEX-minimize/`
+
+SimNIBS is **not** required for this demo.
 
 ## Installation
 
-You may want to clone this repository in addition to the subtoolboxes (i.e. the PRESTUS code) using the following command:
+Clone with submodules (HTTPS):
 
-```
+```bash
 git clone --recurse-submodules https://github.com/jkosciessa/PRESTUS_2D_demo.git
 ```
 
-of if you have your SSH keys deposited on GitHub:
+or via SSH:
 
-```
+```bash
 git clone --recurse-submodules git@github.com:jkosciessa/PRESTUS_2D_demo.git
+```
+
+If you already cloned without `--recurse-submodules`:
+
+```bash
+git submodule update --init
 ```
 
 ## Workflow
 
-This simple demo is intended to give you an impression of the inputs and outputs for the use of PRESTUS. We will neither simulate a complex 3D head with differentiated tissue, nor set up complex transducers. Instead, we will try to conceptually replicate a variant of the benchmarking setup reported by Aubry et al. (2022).
+1. Clone the repository including submodules (see above)
+2. Place k-Wave and FEX-minimize inside `tools/PRESTUS/external/` (see Prerequisites)
+3. Create the tissue benchmark phantoms:
+   ```matlab
+   run('tools/PRESTUS/examples/createPhantom.m')
+   ```
+4. Inspect configuration files if desired:
+   - `data/configs/config_default.yaml` — default PRESTUS parameters
+   - `data/configs/config_setup1.yaml` — setup-specific overrides
+5. Run the simulation:
+   ```matlab
+   run('code/simulation.m')
+   ```
+   By default (`run_calibration = 0`) precomputed calibration values are used, so the simulation runs out of the box.
+6. Inspect outputs in `data/tussim/setup1/sub-002/`
 
-1. Clone repository (with submodules; see above)
-2. Create tissue benchmark pantoms using ```./tools/PRESTUS/examples/createPhantom.m```
-3. [Optional] Inspect benchmark images: ```./data/simnibs/m2m_sub-<XXX>/final_tissues.nii.gz```.
-4. [Optional] Inspect configuration files: ```./data/configs/default_config.yaml``` and ```./data/configs/config_setup1.yaml```
-5. Install SimNIBS (and specify ```parameters.simnibs_bin_path``` in config/script)
-6. Run simulation script: ```./code/simulations```
-7. Inspect outputs (for a brief overview preview ```./data/results.md```)
+## Key script variables
 
-We hope that these simplified examples provide an intuition for how PRESTUS can be setup and illustrate expected outputs. For more documentation (also for transitioning to personalized 3D head simulations and dedicated transducer setups), please refer to [the documentation](https://github.com/Donders-Institute/PRESTUS/tree/master/documentation) and raise [issues](https://github.com/Donders-Institute/PRESTUS/issues) if setups are unclear.
+| Variable | Default | Description |
+|---|---|---|
+| `run_calibration` | `0` | Run free-water calibration before phantom sim; `0` uses precomputed values |
+| `interactive` | `1` | Show figures and pause dialogs; set `0` for unattended runs |
+| `gui_launch` | `0` | Launch PRESTUS GUI instead of running directly |
+| `intensities` | `[30]` | Free-water target intensity [W/cm²] |
 
 ## References
 
-Aubry, J.-F. et al. Benchmark problems for transcranial ultrasound simulation: Intercomparison of compressional wave modelsa). J. Acoust. Soc. Am. 152, 1003–1019 (2022). 
+Aubry, J.-F. et al. Benchmark problems for transcranial ultrasound simulation: Intercomparison of compressional wave models. *J. Acoust. Soc. Am.* 152, 1003–1019 (2022).

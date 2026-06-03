@@ -9,8 +9,7 @@ if ismac
     rootpath = strrep(rootpath, '/project/', '/Volumes/');
 end
 
-pn.prestus     = fullfile(rootpath, '..' , 'v05', 'tools', 'PRESTUS');
-% pn.prestus     = fullfile(rootpath, 'tools', 'PRESTUS');
+pn.prestus     = fullfile(rootpath, 'tools', 'PRESTUS');
 pn.prestus_fun = fullfile(pn.prestus, 'functions');
 pn.prestus_ext = fullfile(pn.prestus, 'external');
 pn.kwave       = fullfile(pn.prestus_ext, 'k-wave', 'k-Wave');
